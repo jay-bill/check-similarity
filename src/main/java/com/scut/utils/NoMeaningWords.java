@@ -1,7 +1,7 @@
 package com.scut.utils;
 
 public class NoMeaningWords {
-	static final String[] NO_MEANING = {
+	public static final String[] NO_MEANING = {
 			"﻿一一",
 			"一下","一个","一些","一何","一切","一则","一则通过","一天","一定","一方面",
 			"一旦","一时","一来","一样","一次","一片","一番","一直","一致","一般",

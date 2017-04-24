@@ -25,6 +25,10 @@ public class FileUtils {
 	public static int uploadFile(MultipartFile [] files,HttpServletRequest request){
 		//获取服务器中存放文件的绝对路径
 		String path = request.getSession().getServletContext().getRealPath("files");
+		File t = new File(path);
+		if(!t.exists()){
+			t.mkdirs();
+		}
 		System.out.println("绝对路径："+path);		
 		//每上传一组，在里面新建一个文件夹，以当前上传的时间的时间戳为文件名
 		String currentDirName = new Date().getTime()+"";
@@ -35,7 +39,7 @@ public class FileUtils {
 		//新建file关联当前文件夹路径
 		File currentFile  = new File(currentDirPath);
 		//创建文件夹
-		currentFile.mkdirs();
+		boolean tmp = currentFile.mkdirs();
 		//上传
 		for(int i=0;i<files.length;i++){
 			uploadFile(files[i],path,currentDirPath);

@@ -1,4 +1,4 @@
-package com.scut.utils;
+package com.scut.service.similarity;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -8,14 +8,15 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.FieldAnalysisRequest;
+import org.apache.solr.client.solrj.response.FieldAnalysisResponse;
 import org.apache.solr.client.solrj.response.AnalysisResponseBase.AnalysisPhase;
 import org.apache.solr.client.solrj.response.AnalysisResponseBase.TokenInfo;
-import org.apache.solr.client.solrj.response.FieldAnalysisResponse;
 import org.springframework.stereotype.Service;
 
+import com.scut.utils.SolrUtils;
+
 @Service
-public class SolrUtils {
-	
+public class SolrService {
 	private static final Logger log = Logger.getLogger(SolrUtils.class);
 	private static HttpSolrServer solrServer; 
 	static {
@@ -24,10 +25,10 @@ public class SolrUtils {
     }
 	/**
      * 给指定的语句分词。
-     * @param sentence 被分词的语句
+     * @param text 被分词的语句
      * @return 分词结果
      */
-    public static HashMap<String,Object> getAnalysis(String sentence,String number) {  	
+    public HashMap<String,Object> getAnalysis(String text,String number) {  	
         FieldAnalysisRequest request = new FieldAnalysisRequest(
                 "/analysis/field");
         Map<String,Object> results = new HashMap<String,Object>();
@@ -36,14 +37,14 @@ public class SolrUtils {
         FieldAnalysisResponse response = null;
         int i=0;
         //计算sentence的长度与500的关系
-        int rel = (sentence.length()/500)+1;
+        int rel = (text.length()/500)+1;
         //将sentence分成几段
         for(int j=0;j<rel;j++){
         	String tmpStr = "";
         	if(j==rel-1){
-        		tmpStr=sentence.substring(j*500,sentence.length());
+        		tmpStr=text.substring(j*500,text.length());
         	}else{
-        		tmpStr=sentence.substring(j*500,j*500+500);
+        		tmpStr=text.substring(j*500,j*500+500);
         	}
 	    	 //分词
 	    	 request.setQuery(tmpStr);
