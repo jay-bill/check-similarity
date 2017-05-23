@@ -36,6 +36,10 @@
 											<button id="uploadBtn" type="submit" class="btn btn-success">上传文件</button>
 										</div>
 									</form>
+									<div>
+										<button onclick="analysSimilarity(0)">共有词相似度</button>
+										<button onclick="analysSimilarity(1)">余弦相似度</button>
+									</div>
 								</div>
 							</div>
 							<!-- /.row (nested) -->
@@ -125,7 +129,7 @@ var simData;
 					} 
 										
 					//分析重复率
-					analysSimilarity();
+					analysSimilarity(0);
 				},
 				error : function(data) {
 					console.info(data);
@@ -133,15 +137,17 @@ var simData;
 					refreshBtn();
 				}
 			})
-		}
-		
+		}		
+	});
 		
 		//分析重复率
-		function analysSimilarity(){
+		function analysSimilarity(val){
+			alert(val);
 			$("#analys-reslut").append("<div id='tmpLoading' style='text-align:center;'><img src='resource/img/loading.gif' style='width:50px;'/></div>")
 			$.ajax({
 				url:"uploadController/analyseSimilarity.do",
 				type:"get",
+				data:{type:val},
 				dataType:"json",
 				error:function(){
 					
@@ -182,7 +188,6 @@ var simData;
 				}
 			});
 		}
-	});
 		
 		function highestSim(){
 			$("#maxTable").remove();

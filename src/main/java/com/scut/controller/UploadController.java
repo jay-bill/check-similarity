@@ -26,6 +26,8 @@ import com.scut.service.file.FileUploadContext;
 import com.scut.service.file.WordsFileUpload;
 import com.scut.service.file.ZipFileUpload;
 import com.scut.service.file.ZipsFileUpload;
+import com.scut.service.similarity.CommonWordSimilarityService;
+import com.scut.service.similarity.CosineSimilarityService;
 import com.scut.service.similarity.SimilarityService;
 import com.scut.service.similarity.SolrService;
 import com.scut.service.word.WordResource;
@@ -48,12 +50,11 @@ public class UploadController {
 	@Autowired
 	WordResource wordRes;
 	@Autowired
-	ZipResource zipRes;
-	@Autowired
-	SimilarityService simiService;
+	ZipResource zipRes;	
 	@Autowired
 	SolrService solrService;
 	
+	SimilarityService simiService;
 	/**
 	 * 上传文件
 	 * @param file
@@ -91,9 +92,9 @@ public class UploadController {
 		String dirPath = uploadContext.filesContext(files, path);
 		//将路径放到session
 		request.getSession().setAttribute("dirPath", dirPath);
+		request.getSession().removeAttribute("wordsArray");
 		if(dirPath==null||dirPath.length()==0)
 			return null;		
-//		FileUtils.uploadFile(files, request);
 		ArrayList<Result> list = new ArrayList<Result>();
 		Result r = new Result();
 		r.setData(new Date().toString());
@@ -105,51 +106,58 @@ public class UploadController {
 	/**
 	 * 分析重复率
 	 * @param request
-	 * @throws IOException 
-	 * @throws OpenXML4JException 
-	 * @throws XmlException 
+	 * @param type：0为共有词汇相似度，1为余弦相似度
+	 * @return
+	 * @throws XmlException
+	 * @throws OpenXML4JException
+	 * @throws IOException
 	 */
+	@SuppressWarnings({ "unchecked" })
 	@ResponseBody
 	@RequestMapping(value="analyseSimilarity.do")
-	public List<Similarity> analyseSimilarity(HttpServletRequest request) throws XmlException, OpenXML4JException, IOException{
+	public List<Similarity> analyseSimilarity(HttpServletRequest request,byte type) throws XmlException, OpenXML4JException, IOException{
 		//获取该文件夹的绝对路径
 		String dirRealPath = (String)request.getSession().getAttribute("dirPath");
-		//传入文件夹，以获取该文件夹下面的word文档
-//		List<HashMap<String,Object>> resArray = WordUtils.getWordTextAndAnalyse(new File(dirRealPath));
-		/**
-		 * 此处分析重复率
-		 */
-//		List<Similarity> list = SimilarityUtils.analysSimilarity(resArray);
-//		return list;
 		//获取该文件夹下面的所有文件
 		File file = new File(dirRealPath);
 		File[] files = file.listFiles();
-		ArrayList<HashMap<String, Object>> resList = new ArrayList<HashMap<String, Object>>();
-		//获取word内容、分词
-		if(dirRealPath.contains("zips")){
-			for(int i=0;i<files.length;i++){
-				String tmp = files[i].getAbsolutePath();
-				//先获取word文档的内容
-				String text="";
-				if(files[i].getName().endsWith(".zip")){
-					text = zipRes.getText(tmp);
-				}else{
-					text = wordRes.getText(tmp);
+		ArrayList<HashMap<String, ArrayList<String>>> resList = 
+				(ArrayList<HashMap<String, ArrayList<String>>>) request.getSession().getAttribute("wordsArray");
+		//先判断是否分词数组已经存在
+		if(resList == null){
+			resList = new ArrayList<HashMap<String, ArrayList<String>>>();
+			//获取word内容、分词
+			if(dirRealPath.contains("zips")){
+				for(int i=0;i<files.length;i++){
+					String tmp = files[i].getAbsolutePath();
+					//先获取word文档的内容
+					String text="";
+					if(files[i].getName().endsWith(".zip")){
+						text = zipRes.getText(tmp);
+					}else{
+						text = wordRes.getText(tmp);
+					}
+					//再分词,传入文本和zip的名称
+					HashMap<String, ArrayList<String>> map = solrService.getAnalysis(text, files[i].getName());
+					resList.add(map);
 				}
-				//再分词,传入文本和zip的名称
-				HashMap<String, Object> map = solrService.getAnalysis(text, files[i].getName().substring(0,12));
-				resList.add(map);
-			}
-		}else if(dirRealPath.contains("files")){
-			for(int i=0;i<files.length;i++){
-				//先获取word文档的内容
-				String text = wordRes.getText(files[i].getAbsolutePath());
-				//再分词
-				HashMap<String, Object> map = solrService.getAnalysis(text, files[i].getName().substring(0,12));
-				resList.add(map);
+			}else if(dirRealPath.contains("files")){
+				for(int i=0;i<files.length;i++){
+					//先获取word文档的内容
+					String text = wordRes.getText(files[i].getAbsolutePath());
+					//再分词
+					HashMap<String, ArrayList<String>> map = solrService.getAnalysis(text, files[i].getName());
+					resList.add(map);
+				}
 			}
 		}
+		request.getSession().setAttribute("wordsArray", resList);
 		//检测相似度
+		if(type==0){
+		    simiService = new CommonWordSimilarityService();			
+		}else if(type==1){
+			simiService = new CosineSimilarityService();			
+		}
 		return simiService.analysSimilarity(resList);
 	}
 }

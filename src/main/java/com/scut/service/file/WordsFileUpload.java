@@ -2,6 +2,9 @@ package com.scut.service.file;
 
 import java.io.File;
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -14,7 +17,15 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class WordsFileUpload extends AbstractFileUpload {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(WordsFileUpload.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WordsFileUpload.class);	
+	public WordsFileUpload(){}
+	public WordsFileUpload(MultipartFile file,String path){
+		this.file = file;
+		this.path = path;
+	}
+	
+	ExecutorService es = Executors.newCachedThreadPool();
+	
 	@Override
 	public String upload(MultipartFile[] files, String path) {
 		path = path+File.separator+"files";
@@ -32,9 +43,7 @@ public class WordsFileUpload extends AbstractFileUpload {
 		currentFile.mkdirs();
 		//上传
 		for(int i=0;i<files.length;i++){
-			int res = uploadFile(files[i],currentDirPath);
-			if(res==-1)
-				LOGGER.debug("上传第"+i+"个Word文档的时候，出现了异常。");
+			es.submit(new WordsFileUpload(files[i],currentDirPath));//开启线程池，并行上传图片
 		}
 		return currentDirPath;
 	}

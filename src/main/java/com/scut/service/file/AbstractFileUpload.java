@@ -2,11 +2,15 @@ package com.scut.service.file;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-public abstract class AbstractFileUpload {
+public abstract class AbstractFileUpload implements Callable<Integer>{
+	
+	protected MultipartFile file; 
+	protected String path;
 	
 	/**
 	 * 上传文件
@@ -27,7 +31,13 @@ public abstract class AbstractFileUpload {
 		//更改文件名：原文件名格式为：姓名-学号
 		String [] names = StringUtils.splitByWholeSeparator(multiFile.getOriginalFilename(), "+");
 		//具体文件（实验报告）的路径
-		String currentFileContentfile = currentDirPath+File.separator+names[1];
+		String sup = multiFile.getOriginalFilename().split("\\.")[1];//文件后缀
+		String currentFileContentfile="";
+		if(!names[0].contains(sup)){
+			currentFileContentfile = currentDirPath+File.separator+names[0]+"."+sup;
+		}else{
+			currentFileContentfile = currentDirPath+File.separator+names[0];
+		}		
 		//具体文件（实验报告）的文件
 		File newFile = new File(currentFileContentfile);
 		//复制
@@ -41,5 +51,11 @@ public abstract class AbstractFileUpload {
 			return -1;
 		}
 		return 1;
+	}
+	
+	@Override
+	public Integer call(){
+		//上传
+		return uploadFile(file,path);
 	}
 }
