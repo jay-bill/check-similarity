@@ -24,8 +24,6 @@ public class WordsFileUpload extends AbstractFileUpload {
 		this.path = path;
 	}
 	
-	ExecutorService es = Executors.newCachedThreadPool();
-	
 	@Override
 	public String upload(MultipartFile[] files, String path) {
 		path = path+File.separator+"files";

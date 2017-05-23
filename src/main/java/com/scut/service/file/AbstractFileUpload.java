@@ -3,6 +3,8 @@ package com.scut.service.file;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,6 +13,7 @@ public abstract class AbstractFileUpload implements Callable<Integer>{
 	
 	protected MultipartFile file; 
 	protected String path;
+	protected ExecutorService es = Executors.newCachedThreadPool();
 	
 	/**
 	 * 上传文件

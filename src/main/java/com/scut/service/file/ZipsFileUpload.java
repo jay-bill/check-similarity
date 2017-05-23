@@ -6,11 +6,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+/**
+ * 多个jar包上传
+ * @author jaybill
+ *
+ */
 @Service
 public class ZipsFileUpload extends AbstractFileUpload {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZipsFileUpload.class);
-
+	public ZipsFileUpload(){}
+	public ZipsFileUpload(MultipartFile file,String path){
+		this.file = file;
+		this.path = path;
+	}
 	@Override
 	public String upload(MultipartFile[] files, String path) {
 		path = path+File.separator+"zips";
@@ -28,9 +37,7 @@ public class ZipsFileUpload extends AbstractFileUpload {
 		currentFile.mkdirs();
 		//上传
 		for(int i=0;i<files.length;i++){
-			int res = uploadFile(files[i],currentDirPath);
-			if(res==-1)
-				LOGGER.debug("上传第"+i+"个Zip类型文件的时候，出现了异常。");
+			es.submit(new ZipsFileUpload(files[i],currentDirPath));//开启线程池，并行上传文件
 		}
 		return currentDirPath;
 	}
