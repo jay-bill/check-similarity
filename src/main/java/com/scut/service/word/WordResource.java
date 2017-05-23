@@ -22,7 +22,11 @@ import com.scut.utils.NoMeaningWords;
  */
 @Service
 public class WordResource implements Resource {
-
+	String path;
+	public WordResource(){}
+	public WordResource(String path){
+		this.path = path;
+	}
 	@Override
 	public String getText(String wordFilePath) throws IOException, XmlException, OpenXML4JException {
 		String wordText="";
@@ -38,7 +42,11 @@ public class WordResource implements Resource {
              wordText = word.getText();             
 		}		
 		wordText = clearNoMeanWords(wordText);
-		return wordText;
+		//加上作者
+		System.out.println(Thread.currentThread().getName()+" "+wordFilePath);
+		String [] tmps=wordFilePath.split("\\"+File.separator);
+		String author = tmps[tmps.length-1].split("\\.")[0];
+		return author+"#_#"+wordText;
 	}
 
 	/**
@@ -52,5 +60,10 @@ public class WordResource implements Resource {
 			text = text.replace(nomean[i], "");
         }
 		return text;
+	}
+
+	@Override
+	public String call() throws Exception {
+		return getText(path);		 
 	}
 }

@@ -6,6 +6,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -53,8 +58,11 @@ public class UploadController {
 	ZipResource zipRes;	
 	@Autowired
 	SolrService solrService;
-	
+	@Autowired
 	SimilarityService simiService;
+	protected ExecutorService es = Executors.newCachedThreadPool();
+	protected CompletionService<String> cs = new ExecutorCompletionService<String>(es);
+	protected CompletionService<HashMap<String,ArrayList<String>>> csh = new ExecutorCompletionService<HashMap<String,ArrayList<String>>>(es);
 	/**
 	 * 上传文件
 	 * @param file
@@ -115,7 +123,8 @@ public class UploadController {
 	@SuppressWarnings({ "unchecked" })
 	@ResponseBody
 	@RequestMapping(value="analyseSimilarity.do")
-	public List<Similarity> analyseSimilarity(HttpServletRequest request,byte type) throws XmlException, OpenXML4JException, IOException{
+	public List<Similarity> analyseSimilarity(HttpServletRequest request,byte type) 
+			throws XmlException, OpenXML4JException, IOException{
 		//获取该文件夹的绝对路径
 		String dirRealPath = (String)request.getSession().getAttribute("dirPath");
 		//获取该文件夹下面的所有文件
@@ -135,23 +144,70 @@ public class UploadController {
 					if(files[i].getName().endsWith(".zip")){
 						text = zipRes.getText(tmp);
 					}else{
-						text = wordRes.getText(tmp);
+						//开启多线程，获取文字
+						cs.submit(new WordResource(tmp));
 					}
-					//再分词,传入文本和zip的名称
-					HashMap<String, ArrayList<String>> map = solrService.getAnalysis(text, files[i].getName());
-					resList.add(map);
 				}
+				//等待多线程执行完成
+				//再分词,传入文本和zip的名称
+				for(int i=0;i<files.length;i++){
+					String text = null;
+					try {
+						text = cs.take().get();//获取各个线程返回的文本内容
+						//获取分词
+						csh.submit(new SolrService(text.split("#_#")[1], text.split("#_#")[0]));
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} catch (ExecutionException e) {
+						e.printStackTrace();
+					}				
+				}
+				//把每个分词HashMap添加到list中
+				for(int i=0;i<files.length;i++){
+					try {
+						HashMap<String, ArrayList<String>> map = csh.take().get();//获取各个线程返回的分词内容
+						resList.add(map);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} catch (ExecutionException e) {
+						e.printStackTrace();
+					}
+				}				
 			}else if(dirRealPath.contains("files")){
 				for(int i=0;i<files.length;i++){
 					//先获取word文档的内容
-					String text = wordRes.getText(files[i].getAbsolutePath());
-					//再分词
-					HashMap<String, ArrayList<String>> map = solrService.getAnalysis(text, files[i].getName());
-					resList.add(map);
+					//开启多线程，获取文字
+					cs.submit(new WordResource(files[i].getAbsolutePath()));
 				}
+				//等待多线程执行完成
+				//再分词,传入文本和zip的名称
+				for(int i=0;i<files.length;i++){
+					String text = null;
+					try {
+						text = cs.take().get();//获取各个线程返回的文本内容
+						//获取分词
+						csh.submit(new SolrService(text.split("#_#")[1], text.split("#_#")[0]));
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} catch (ExecutionException e) {
+						e.printStackTrace();
+					}				
+				}
+				//把每个分词HashMap添加到list中
+				for(int i=0;i<files.length;i++){
+					try {
+						HashMap<String, ArrayList<String>> map = csh.take().get();//获取各个线程返回的分词内容
+						resList.add(map);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} catch (ExecutionException e) {
+						e.printStackTrace();
+					}
+				}		
 			}
 		}
 		request.getSession().setAttribute("wordsArray", resList);
+		System.out.println("-------分析相似度--------");
 		//检测相似度
 		if(type==0){
 		    simiService = new CommonWordSimilarityService();			

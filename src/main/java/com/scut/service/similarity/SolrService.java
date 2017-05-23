@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -17,13 +18,21 @@ import org.springframework.stereotype.Service;
 import com.scut.utils.SolrUtils;
 
 @Service
-public class SolrService {
+public class SolrService implements Callable<HashMap<String,ArrayList<String>>>{
 	private static final Logger log = Logger.getLogger(SolrUtils.class);
 	private static HttpSolrServer solrServer; 
 	static {
         solrServer = new HttpSolrServer("http://192.168.241.130:8080/solr/");
         solrServer.setConnectionTimeout(5000);
     }
+	private String text;
+	private String name;
+	public SolrService(){}
+	public SolrService(String text,String name){
+		this.text = text;
+		this.name = name;
+	}
+	
 	
     public HashMap<String,ArrayList<String>> getAnalysis(String text,String name) {  	
         FieldAnalysisRequest request = new FieldAnalysisRequest(
@@ -64,6 +73,12 @@ public class SolrService {
          }
          //存放到hashmap中
          results.put(name, arrList);
+         System.out.println("分词："+Thread.currentThread().getName());
          return results;
      }
+
+	@Override
+	public HashMap<String, ArrayList<String>> call() throws Exception {
+		return getAnalysis(text,name);
+	}
 }

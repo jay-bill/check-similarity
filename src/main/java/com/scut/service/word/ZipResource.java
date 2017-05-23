@@ -103,4 +103,10 @@ public class ZipResource implements Resource {
 		}
 		return docPath;
 	}
+
+	@Override
+	public String call() throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
