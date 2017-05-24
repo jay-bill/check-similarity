@@ -37,9 +37,6 @@ import com.scut.service.similarity.SimilarityService;
 import com.scut.service.similarity.SolrService;
 import com.scut.service.word.WordResource;
 import com.scut.service.word.ZipResource;
-import com.scut.utils.FileUtils;
-import com.scut.utils.SimilarityUtils;
-import com.scut.utils.WordUtils;
 
 /**
  * 上传文件
@@ -98,6 +95,8 @@ public class UploadController {
 		//上传文件
 		uploadContext.setFileUploadType(type);
 		String dirPath = uploadContext.filesContext(files, path);
+		//等待线程完成
+		
 		//将路径放到session
 		request.getSession().setAttribute("dirPath", dirPath);
 		request.getSession().removeAttribute("wordsArray");
@@ -138,82 +137,106 @@ public class UploadController {
 			//获取word内容、分词
 			if(dirRealPath.contains("zips")){
 				for(int i=0;i<files.length;i++){
-					String tmp = files[i].getAbsolutePath();
 					//先获取word文档的内容
-					String text="";
 					if(files[i].getName().endsWith(".zip")){
-						text = zipRes.getText(tmp);
+						moreThreadHandleZip(files,resList);
 					}else{
-						//开启多线程，获取文字
-						cs.submit(new WordResource(tmp));
+						moreThreadHandleWords(files,resList);
 					}
 				}
-				//等待多线程执行完成
-				//再分词,传入文本和zip的名称
-				for(int i=0;i<files.length;i++){
-					String text = null;
-					try {
-						text = cs.take().get();//获取各个线程返回的文本内容
-						//获取分词
-						csh.submit(new SolrService(text.split("#_#")[1], text.split("#_#")[0]));
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} catch (ExecutionException e) {
-						e.printStackTrace();
-					}				
-				}
-				//把每个分词HashMap添加到list中
-				for(int i=0;i<files.length;i++){
-					try {
-						HashMap<String, ArrayList<String>> map = csh.take().get();//获取各个线程返回的分词内容
-						resList.add(map);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} catch (ExecutionException e) {
-						e.printStackTrace();
-					}
-				}				
 			}else if(dirRealPath.contains("files")){
-				for(int i=0;i<files.length;i++){
-					//先获取word文档的内容
-					//开启多线程，获取文字
-					cs.submit(new WordResource(files[i].getAbsolutePath()));
-				}
-				//等待多线程执行完成
-				//再分词,传入文本和zip的名称
-				for(int i=0;i<files.length;i++){
-					String text = null;
-					try {
-						text = cs.take().get();//获取各个线程返回的文本内容
-						//获取分词
-						csh.submit(new SolrService(text.split("#_#")[1], text.split("#_#")[0]));
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} catch (ExecutionException e) {
-						e.printStackTrace();
-					}				
-				}
-				//把每个分词HashMap添加到list中
-				for(int i=0;i<files.length;i++){
-					try {
-						HashMap<String, ArrayList<String>> map = csh.take().get();//获取各个线程返回的分词内容
-						resList.add(map);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} catch (ExecutionException e) {
-						e.printStackTrace();
-					}
-				}		
+				moreThreadHandleWords(files,resList);				
 			}
 		}
 		request.getSession().setAttribute("wordsArray", resList);
-		System.out.println("-------分析相似度--------");
+		System.out.println("-------开始分析相似度--------");
+		long starTime=System.currentTimeMillis();
 		//检测相似度
 		if(type==0){
 		    simiService = new CommonWordSimilarityService();			
 		}else if(type==1){
 			simiService = new CosineSimilarityService();			
 		}
-		return simiService.analysSimilarity(resList);
+		long endTime=System.currentTimeMillis();
+		List<Similarity> res = simiService.analysSimilarity(resList);
+		System.out.println("-------分析相似度结束，耗时"+(endTime-starTime));
+		return res;
+	}
+	
+	/**
+	 * 多线程处理word文档
+	 * @param files
+	 * @param resList
+	 */
+	private void moreThreadHandleWords(File [] files,ArrayList<HashMap<String, ArrayList<String>>> resList){
+		for(int i=0;i<files.length;i++){
+			//先获取word文档的内容
+			//开启多线程，获取文字
+			cs.submit(new WordResource(files[i].getAbsolutePath()));
+		}
+		//等待多线程执行完成
+		//再分词,传入文本和zip的名称
+		for(int i=0;i<files.length;i++){
+			String text = null;
+			try {
+				text = cs.take().get();//获取各个线程返回的文本内容
+				//获取分词
+				csh.submit(new SolrService(text.split("#_#")[1], text.split("#_#")[0]));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}				
+		}
+		moreThreadDevideWords(files.length,resList);
+	}
+	
+	/**
+	 * 多线程处理zip文档
+	 * @param files
+	 * @param resList
+	 */
+	private void moreThreadHandleZip(File [] files,ArrayList<HashMap<String, ArrayList<String>>> resList){
+		for(int i=0;i<files.length;i++){
+			//先获取word文档的内容
+			//开启多线程，获取文字
+			cs.submit(new ZipResource(files[i].getAbsolutePath()));
+		}
+		//等待多线程执行完成
+		//再分词,传入文本和zip的名称
+		for(int i=0;i<files.length;i++){
+			String text = null;
+			try {
+				text = cs.take().get();//获取各个线程返回的文本内容
+				//获取分词
+				String [] tmp = text.split("#_#");
+				System.out.println("-----"+tmp.length);
+				csh.submit(new SolrService(tmp[1], tmp[0]));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}				
+		}
+		moreThreadDevideWords(files.length,resList);
+	}
+	
+	/**
+	 * 多线程分词
+	 * @param length
+	 * @param resList
+	 */
+	private void moreThreadDevideWords(int length,ArrayList<HashMap<String, ArrayList<String>>> resList){
+		//把每个分词HashMap添加到list中
+		for(int i=0;i<length;i++){
+			try {
+				HashMap<String, ArrayList<String>> map = csh.take().get();//获取各个线程返回的分词内容
+				resList.add(map);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

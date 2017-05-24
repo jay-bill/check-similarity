@@ -17,9 +17,15 @@ import org.springframework.stereotype.Service;
 public class ZipResource implements Resource {
 	
 	WordResource wordRes = new WordResource();
-	
+	private String path;
+	public ZipResource() {}
+	public ZipResource(String path) {
+		this.path = path;
+	}
+
 	@Override
 	public String getText(String zipPath) throws IOException, XmlException, OpenXML4JException {
+		System.out.println("zip:"+Thread.currentThread().getName()+":"+zipPath);
 		File file = new File(zipPath);		
 		//解压zip文件，解压文件夹和原zip文件同名，在同一目录下。
 		String unzipPath = unZipFiles(file,file.getParent());
@@ -29,7 +35,7 @@ public class ZipResource implements Resource {
 		//获取word文档路径
 		String wordFilePath = findWordPath(unzipPath);
 		//先去除停用词，再获取word的文本
-		String text = wordRes.clearNoMeanWords(wordRes.getText(wordFilePath));
+		String text = wordRes.getText(wordFilePath);
 		return text;
 	}
 
@@ -106,7 +112,6 @@ public class ZipResource implements Resource {
 
 	@Override
 	public String call() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		return getText(path);
 	}
 }

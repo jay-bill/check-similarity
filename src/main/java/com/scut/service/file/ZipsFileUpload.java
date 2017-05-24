@@ -2,6 +2,8 @@ package com.scut.service.file;
 
 import java.io.File;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -37,8 +39,19 @@ public class ZipsFileUpload extends AbstractFileUpload {
 		currentFile.mkdirs();
 		//上传
 		for(int i=0;i<files.length;i++){
-			es.submit(new ZipsFileUpload(files[i],currentDirPath));//开启线程池，并行上传文件
+			cs.submit(new ZipsFileUpload(files[i],currentDirPath));//开启线程池，并行上传文件
 		}
+		//等待线程完成
+		for(int i=0;i<files.length;i++){
+			try {
+				cs.take().get();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println("文件上传完成！");
 		return currentDirPath;
 	}
 }
