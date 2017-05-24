@@ -168,7 +168,6 @@ var simData;
 					//显示结果
 					var table="<table id='allTable' border='1' cellpadding='2'><caption align='top'>相似度分析</caption>  <tr id='tr0'><td>学号</td></tr></table>";
 					$("#analys-reslut").append(table);
-					alert(data.length);
 					for(var i=0;i<data.length;i++){
 						$("#tr0").append("<td>"+data[i].id+"</td>");
 					}

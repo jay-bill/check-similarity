@@ -44,7 +44,28 @@ public class CommonWordSimilarityService extends SimilarityService{
 				e.printStackTrace();
 			}
 		}
-		return resList;
+		//显示相似度
+		for(int i=0;i<resList.size();i++){
+			Similarity sm = resList.get(i);
+			for(int j=0;j<sm.getsId().size();j++){
+				System.out.println(sm.getId()+"---"+sm.getsId().get(j)+"---"+sm.getSimilarity().get(j));
+			}
+		}
+		//整理格式
+		ArrayList<String> arr = resList.get(0).getsId();
+		List<Similarity> res = new ArrayList<Similarity>();
+		for(int i=0;i<arr.size();i++){
+			String flag = arr.get(i);
+			for(int j=0;j<resList.size();j++){
+				if(resList.get(j).getId().equals(flag)){
+					Similarity sm = resList.get(j);
+					res.add(sm);
+					break;
+				}
+			}			
+		}
+		System.out.println("整理格式完成");
+		return res;
 	}
 	
 	/**

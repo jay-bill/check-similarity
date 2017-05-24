@@ -41,7 +41,20 @@ public class CosineSimilarityService extends SimilarityService {
 				e.printStackTrace();
 			}
 		}
-		return resList;
+		//整理格式
+		ArrayList<String> arr = resList.get(0).getsId();
+		List<Similarity> res = new ArrayList<Similarity>();
+		for(int i=0;i<arr.size();i++){
+			String flag = arr.get(i);
+			for(int j=0;j<resList.size();j++){
+				if(resList.get(j).getId().equals(flag)){
+					Similarity sm = resList.get(j);
+					res.add(sm);
+					break;
+				}
+			}			
+		}
+		return res;
 	}
 
 	/**
