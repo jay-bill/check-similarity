@@ -15,8 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ZipResource implements Resource {
-	
-	WordResource wordRes = new WordResource();
+		
 	private String path;
 	public ZipResource() {}
 	public ZipResource(String path) {
@@ -35,6 +34,7 @@ public class ZipResource implements Resource {
 		//获取word文档路径
 		String wordFilePath = findWordPath(unzipPath);
 		//先去除停用词，再获取word的文本
+		WordResource wordRes = new WordResource();
 		String text = wordRes.getText(wordFilePath);
 		return text;
 	}

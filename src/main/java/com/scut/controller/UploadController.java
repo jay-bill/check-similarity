@@ -136,13 +136,11 @@ public class UploadController {
 			resList = new ArrayList<HashMap<String, ArrayList<String>>>();
 			//获取word内容、分词
 			if(dirRealPath.contains("zips")){
-				for(int i=0;i<files.length;i++){
-					//先获取word文档的内容
-					if(files[i].getName().endsWith(".zip")){
-						moreThreadHandleZip(files,resList);
-					}else{
-						moreThreadHandleWords(files,resList);
-					}
+				//先获取word文档的内容
+				if(files[0].getName().endsWith(".zip")){
+					moreThreadHandleZip(files,resList);
+				}else{
+					moreThreadHandleWords(files,resList);
 				}
 			}else if(dirRealPath.contains("files")){
 				moreThreadHandleWords(files,resList);				
@@ -211,6 +209,8 @@ public class UploadController {
 				//获取分词
 				String [] tmp = text.split("#_#");
 				System.out.println("-----"+tmp.length);
+				System.out.println(i+"===="+text);
+
 				csh.submit(new SolrService(tmp[1], tmp[0]));
 			} catch (InterruptedException e) {
 				e.printStackTrace();

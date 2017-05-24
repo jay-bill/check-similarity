@@ -51,7 +51,7 @@ public class ZipsFileUpload extends AbstractFileUpload {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("文件上传完成！");
+		System.out.println("zip文件上传完成！");
 		return currentDirPath;
 	}
 }

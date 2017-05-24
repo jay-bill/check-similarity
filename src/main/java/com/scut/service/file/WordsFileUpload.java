@@ -57,7 +57,7 @@ public class WordsFileUpload extends AbstractFileUpload{
 				e.printStackTrace();
 			}
 		}
-		System.out.println("zip文件上传完成！");
+		System.out.println("word文件上传完成！");
 		return currentDirPath;
 	}
 }
