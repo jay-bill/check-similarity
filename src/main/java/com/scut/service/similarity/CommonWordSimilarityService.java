@@ -54,7 +54,7 @@ public class CommonWordSimilarityService extends SimilarityService{
 	 * @param resList  保存结果
 	 */
 	public Similarity analyse(List<HashMap<String,ArrayList<String>>> list,HashMap<String,ArrayList<String>> currentStu){
-		System.out.println("相似度："+Thread.currentThread().getName());
+		System.out.println("共有词相似度："+Thread.currentThread().getName());
 		Similarity resOne = new Similarity();//与其他人的重复率比较
 		for(int j=0;j<list.size();j++){
 			HashMap<String,ArrayList<String>> nextStu = list.get(j);
