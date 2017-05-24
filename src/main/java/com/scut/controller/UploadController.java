@@ -55,8 +55,6 @@ public class UploadController {
 	ZipResource zipRes;	
 	@Autowired
 	SolrService solrService;
-	@Autowired
-	SimilarityService simiService;
 	protected ExecutorService es = Executors.newCachedThreadPool();
 	protected CompletionService<String> cs = new ExecutorCompletionService<String>(es);
 	protected CompletionService<HashMap<String,ArrayList<String>>> csh = new ExecutorCompletionService<HashMap<String,ArrayList<String>>>(es);
@@ -148,14 +146,16 @@ public class UploadController {
 		}
 		request.getSession().setAttribute("wordsArray", resList);
 		System.out.println("-------开始分析相似度--------");
-		long starTime=System.currentTimeMillis();
+		long starTime=System.currentTimeMillis();		
 		//检测相似度
+		SimilarityService simiService = null;
 		if(type==0){
 		    simiService = new CommonWordSimilarityService();			
 		}else if(type==1){
 			simiService = new CosineSimilarityService();			
 		}
 		long endTime=System.currentTimeMillis();
+		//多线程分析相似度
 		List<Similarity> res = simiService.analysSimilarity(resList);
 		System.out.println("-------分析相似度结束，耗时"+(endTime-starTime));
 		return res;
@@ -208,9 +208,6 @@ public class UploadController {
 				text = cs.take().get();//获取各个线程返回的文本内容
 				//获取分词
 				String [] tmp = text.split("#_#");
-				System.out.println("-----"+tmp.length);
-				System.out.println(i+"===="+text);
-
 				csh.submit(new SolrService(tmp[1], tmp[0]));
 			} catch (InterruptedException e) {
 				e.printStackTrace();

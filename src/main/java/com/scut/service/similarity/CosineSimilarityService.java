@@ -127,4 +127,11 @@ public class CosineSimilarityService extends SimilarityService {
 		}
 		return set;
 	}
+
+	@Override
+	public Similarity analyse(List<HashMap<String, ArrayList<String>>> list,
+			HashMap<String, ArrayList<String>> currentStu) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
