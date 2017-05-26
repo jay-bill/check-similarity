@@ -1,19 +1,17 @@
 package com.scut.service.file;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.scut.utils.DirNameUtils;
 /**
  * 上传一个Zip压缩包，里面有可能是一堆zip包，或者是doc、docx
  * @author jaybill
@@ -29,19 +27,18 @@ public class ZipFileUpload extends AbstractFileUpload {
 			if(!dirFile.exists()){
 				dirFile.mkdirs();
 			}
-			//每上传一组，在里面新建一个文件夹，以当前上传的时间的时间戳为文件名
-			String currentDirName = new Date().toString();
-			currentDirName = currentDirName.replaceAll("\\s", "");
-			currentDirName = currentDirName.replaceAll(":", "");
 			//上面新建的文件夹路径
-			String currentDirPath = path+File.separator+currentDirName;
-			//新建file关联当前文件夹路径
+			String currentDirPath = DirNameUtils.createDirPath(path);
+			
+			//新建file关联当前文件夹路径,创建文件夹
 			File currentFile  = new File(currentDirPath);
-			//创建文件夹
 			currentFile.mkdirs();
+			
 			String res = this.uploadZip(files[0],currentDirPath);
-			if(res==null)
+			if(res==null){
 				LOGGER.debug("上传Zip类型文件的时候，出现了异常。");
+				return null;
+			}				
 			//解析
 			File f =new File(res);
 			String zipDir = null;
@@ -88,7 +85,8 @@ public class ZipFileUpload extends AbstractFileUpload {
 	 * @throws IOException
 	 */
 	public String unZipFiles(File zipFile, String descDir) throws IOException {          
-        ZipFile zip = new ZipFile(zipFile,Charset.forName("GBK"));//解决中文文件夹乱码  
+        @SuppressWarnings("resource")
+		ZipFile zip = new ZipFile(zipFile,Charset.forName("GBK"));//解决中文文件夹乱码  
         //zip文件名（不包括路径信息）
         String name = zip.getName().substring(zip.getName().lastIndexOf(File.separator)+1, zip.getName().lastIndexOf('.'));            
         //和zip所在同一个目录下，新建一个和zip文件同名的目录

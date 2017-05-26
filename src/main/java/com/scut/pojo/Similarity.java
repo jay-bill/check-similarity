@@ -1,7 +1,6 @@
 package com.scut.pojo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * 重复率

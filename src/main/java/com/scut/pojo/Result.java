@@ -24,4 +24,9 @@ public class Result {
 		return "Result [code=" + code + ", data=" + data + "]";
 	}
 	
+	public Result(){}
+	public Result(String data,byte code){
+		this.data = data;
+		this.code = code;
+	}
 }

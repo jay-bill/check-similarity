@@ -11,7 +11,6 @@ import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.xmlbeans.XmlException;
-import org.springframework.stereotype.Service;
 
 import com.scut.utils.NoMeaningWords;
 
@@ -20,9 +19,8 @@ import com.scut.utils.NoMeaningWords;
  * @author jaybill
  *
  */
-@Service
 public class WordResource implements Resource {
-	String path;
+	private String path;
 	public WordResource(){}
 	public WordResource(String path){
 		this.path = path;

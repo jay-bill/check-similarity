@@ -9,21 +9,12 @@ public class FileUploadContext {
 		this.upload = upload;
 	}
 	/**
-	 * 上传多个文件
+	 * 上传文件
 	 * @param files
 	 * @param path
 	 * @return
 	 */
 	public String filesContext(MultipartFile [] files,String path){
 		return upload.upload(files, path);
-	}
-	/**
-	 * 上传单个文件
-	 * @param file
-	 * @param currentDirPath
-	 * @return
-	 */
-	public int fileContext(MultipartFile file,String currentDirPath){
-		return upload.uploadFile(file, currentDirPath);
-	}
+	}	
 }

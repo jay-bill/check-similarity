@@ -46,7 +46,8 @@ public class ZipResource implements Resource {
 	 * @throws IOException
 	 */
 	public String unZipFiles(File zipFile, String descDir) throws IOException {          
-        ZipFile zip = new ZipFile(zipFile,Charset.forName("GBK"));//解决中文文件夹乱码  
+        @SuppressWarnings("resource")
+		ZipFile zip = new ZipFile(zipFile,Charset.forName("GBK"));//解决中文文件夹乱码  
         //zip文件名（不包括路径信息）
         String name = zip.getName().substring(zip.getName().lastIndexOf(File.separator)+1, zip.getName().lastIndexOf('.'));            
         //和zip所在同一个目录下，新建一个和zip文件同名的目录
