@@ -27,7 +27,7 @@ public class CommonWordSimilarityService extends SimilarityService{
 	 * @param list:每一个文档的学生名字和分词数组
 	 * @return
 	 */
-	public List<Similarity> analysSimilarity(List<HashMap<String,ArrayList<String>>> list){
+	public List<Similarity> analyseSimilarity(List<HashMap<String,ArrayList<String>>> list){
 		List<Similarity> resList = new ArrayList<Similarity>();
 		//多线程计算相似度
 		for(int i=0;i<list.size();i++){

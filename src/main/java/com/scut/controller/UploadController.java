@@ -108,7 +108,7 @@ public class UploadController {
 		//获取相似度实例
 		SimilarityService simiService = SimilarityFactory.getSimiralityType(type);
 		//多线程分析相似度
-		List<Similarity> res = simiService.analysSimilarity(resList);
+		List<Similarity> res = simiService.analyseSimilarity(resList);
 		System.out.println("-------分析相似度结束-------");
 		return res;
 	}

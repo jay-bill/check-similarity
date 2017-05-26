@@ -24,7 +24,7 @@ public class CosineSimilarityService extends SimilarityService {
 		this.currentStu = currentStu;
 	}
 	@Override
-	public List<Similarity> analysSimilarity(List<HashMap<String, ArrayList<String>>> list) {
+	public List<Similarity> analyseSimilarity(List<HashMap<String, ArrayList<String>>> list) {
 		List<Similarity> resList = new ArrayList<Similarity>();
 		for(int i=0;i<list.size();i++){
 			HashMap<String,ArrayList<String>> curMap = list.get(i);

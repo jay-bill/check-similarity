@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
-
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.FieldAnalysisRequest;
@@ -43,7 +42,7 @@ public class SolrService implements Callable<HashMap<String,ArrayList<String>>>{
         request.addFieldName("WEIBO_CONTENT");// 字段名，随便指定一个支持中文分词的字段
         request.setFieldValue("");//字段值，可以为空字符串，但是需要显式指定此参数
         FieldAnalysisResponse response = null;
-        //计算sentence的长度与500的关系
+        //计算sentence的长度与500的关系，防止get方法参数过长
         int rel = (text.length()/500)+1;
         //将sentence分成几段
         for(int j=0;j<rel;j++){

@@ -25,7 +25,7 @@ public abstract class SimilarityService implements Callable<Similarity>{
 	 * @param list
 	 * @return
 	 */
-	public abstract List<Similarity> analysSimilarity(List<HashMap<String, ArrayList<String>>> list);
+	public abstract List<Similarity> analyseSimilarity(List<HashMap<String, ArrayList<String>>> list);
 	public abstract Similarity analyse(List<HashMap<String,ArrayList<String>>> list,HashMap<String,ArrayList<String>> currentStu);
 	
 	/**
