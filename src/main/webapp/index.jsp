@@ -61,8 +61,24 @@
 <script type="text/javascript" src="resource/js/jquery.min.js" ></script>
 <script type="text/javascript" src="resource/js/bootstrap.min.js" ></script>
 <script type="text/javascript">
-//全局变量
-var simData;
+		$.ajax(
+				{url:"uploadController/setsession.do",
+				type:"get",
+				dataType:"json",
+				success:function(){
+					console.log("session设置成功。");
+				}
+		});
+		function refreshBtn(){
+			setTimeout(function() {
+				$("#file").show();
+				$("#uploadBtn").text("上传文件");
+				$("#uploadBtn").removeAttr("disabled");
+			}, 500);
+		}
+		//全局变量
+		var simData;
+		var counter;
 		$(function() {
 		//上传文件按钮
 		$("#uploadBtn").click(function() {
@@ -75,13 +91,6 @@ var simData;
 			$("#progressBar").parent().addClass("active");
 			upload("文件上传");
 		})
-		function refreshBtn(){
-			setTimeout(function() {
-				$("#file").show();
-				$("#uploadBtn").text("上传文件");
-				$("#uploadBtn").removeAttr("disabled");
-			}, 500);
-		}
 		function upload(name) {
 			//先隐藏input file
 			$("#file").hide();
@@ -126,8 +135,7 @@ var simData;
 						$("#uploadBtn").text("不支持的文件类型");
 					} else {
 						$("#uploadBtn").text(result.data);
-					} 
-										
+					} 	
 					//分析重复率
 					analysSimilarity(0);
 				},
@@ -142,19 +150,23 @@ var simData;
 		
 		//分析重复率
 		function analysSimilarity(val){
-			alert(val);
-			$("#analys-reslut").append("<div id='tmpLoading' style='text-align:center;'><img src='resource/img/loading.gif' style='width:50px;'/></div>")
+			//获取进度信息
+			counter = setInterval(function(){
+				getProgressInfo();
+			}, 300);
+			
+			
+			console.log("相似度类型："+val);
 			$.ajax({
 				url:"uploadController/analyseSimilarity.do",
 				type:"get",
 				data:{type:val},
 				dataType:"json",
 				error:function(){
-					
+					$("body").html("<h2>服务器正在维护！</h2>");
 				},
 				success:function(data){
 					simData = data;
-					alert("分析完成");
 					$("table").remove();
 					$("#tmpLoading").remove();
 					// 上传完成并且分析完成后，进度条隐藏，清空input的内容
@@ -222,6 +234,63 @@ var simData;
 				$("#maxTable tr:last td:last").text(people);
 				$("#maxTable tr:last").append("<td>"+maxSim+"</td>");
 			}
+		}
+		
+		/**
+		 * 获取进度信息
+		 */
+		function getProgressInfo(){
+			$.ajax({
+				url:"uploadController/getsession.do",
+				type:"get",
+				dataType:"json",
+				success:function(data){
+					var reslv = data[0];
+					var ppl = data[1];
+					var simi = data[2];
+					console.log("当前解析进度是："+parseFloat(reslv));
+					if(Math.abs(1.0-reslv)>0.05){
+						if($("#tmpLoading1").length<=0){
+							$("#analys-reslut").append("<div id='tmpLoading1'><span id='tmpSpan1'>解析文档信息："+reslv+"</span><img src='resource/img/loading.gif' style='width:30px;'/></div>");
+						}else{
+							$("#tmpSpan1").html("解析文档信息："+reslv);
+						}
+					}else{
+						$("#tmpSpan1").html("解析文档信息：100%");
+						$("#tmpLoading1 img").remove();
+					}
+					
+					if(Math.abs(1.0-reslv)<=0.05&&Math.abs(1.0-ppl)>0.05){
+						if($("#tmpLoading2").length<=0){
+							$("#analys-reslut").append("<div id='tmpLoading2'><span id='tmpSpan2'>分词："+ppl+"</span><img src='resource/img/loading.gif' style='width:30px;'/></div>");
+						}else{
+							$("#tmpSpan2").html("分词："+ppl);
+						}
+					}else{
+						$("#tmpSpan2").html("分词：100%");
+						$("#tmpLoading2 img").remove();
+					}
+					
+					if(Math.abs(1.0-reslv)<=0.05
+							&&Math.abs(1.0-ppl)<=0.05
+							&&Math.abs(1.0-simi)>0.05){
+						if($("#tmpLoading3").length<=0){
+							$("#analys-reslut").append("<div id='tmpLoading3'><span id='tmpSpan3'>相似度计算进度："+ppl+"</span><img src='resource/img/loading.gif' style='width:30px;'/></div>");
+						}else{
+							$("#tmpSpan3").html("相似度计算进度："+simi);
+						}
+					}else{
+						$("#tmpSpan3").html("相似度计算进度：100%");
+						$("#tmpLoading3 img").remove();
+					} 					
+					if(Math.abs(1.0-reslv)<=0.05
+							&&Math.abs(1.0-ppl)<=0.05
+							&&Math.abs(1.0-simi)<=0.05){
+						clearInterval(counter);
+						refreshBtn();
+					}
+				}
+			});
 		}
 </script>
 </html>
