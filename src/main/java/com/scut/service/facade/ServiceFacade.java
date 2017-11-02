@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import com.scut.controller.UploadController;
@@ -26,9 +27,9 @@ import com.scut.service.word.ZipResource;
  */
 @Service
 public class ServiceFacade {
-	protected ExecutorService es;
-	protected CompletionService<String> cs;
-	protected CompletionService<HashMap<String,ArrayList<String>>> csh;
+	private final ExecutorService es;
+	private final CompletionService<String> cs;//存放文本
+	private final CompletionService<HashMap<String,ArrayList<String>>> csh;//存放分词
 	public ServiceFacade(){
 		this.es = Executors.newCachedThreadPool();
 		this.cs = new ExecutorCompletionService<String>(es);

@@ -14,6 +14,7 @@ import com.scut.pojo.Similarity;
  * @author jaybill
  *
  */
+@Deprecated
 public class SimilarityUtils {
 	/**
 	 * 分析重复率

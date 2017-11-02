@@ -11,6 +11,8 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import com.scut.pojo.Similarity;
 
 public abstract class SimilarityService implements Callable<Similarity>{
@@ -25,7 +27,7 @@ public abstract class SimilarityService implements Callable<Similarity>{
 	 * @param list
 	 * @return
 	 */
-	public abstract List<Similarity> analyseSimilarity(List<HashMap<String, ArrayList<String>>> list);
+	public abstract List<Similarity> analyseSimilarity(List<HashMap<String, ArrayList<String>>> list,HttpServletRequest request);
 	public abstract Similarity analyse(List<HashMap<String,ArrayList<String>>> list,HashMap<String,ArrayList<String>> currentStu);
 	
 	/**

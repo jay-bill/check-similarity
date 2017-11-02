@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @author jaybill
  *
  */
+@Deprecated
 public class FileUtils {
 	/**
 	 * 上传文件，来自http协议的文件

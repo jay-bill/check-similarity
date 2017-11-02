@@ -10,6 +10,8 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.scut.utils.DirNameUtils;
@@ -20,7 +22,7 @@ import com.scut.utils.ThreadsWaitUtils;
  *
  */
 public abstract class AbstractFileUpload implements Callable<Integer>{
-	
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFileUpload.class);
 	protected MultipartFile file; 
 	protected String path;
 	protected ExecutorService es = Executors.newCachedThreadPool();
@@ -42,25 +44,28 @@ public abstract class AbstractFileUpload implements Callable<Integer>{
 	 * @return
 	 */
 	protected String uploadReal(MultipartFile[] files,String path,String className){
+		LOGGER.info("执行AbstractFileUpload的上传方法");
 		File dirFile = new File(path);
 		if(!dirFile.exists()){
 			dirFile.mkdirs();
 		}		
-		//新建文件夹的路径
+		//根据当前时间，获取即将创建的文件夹的路径
 		String currentDirPath = DirNameUtils.createDirPath(path);
 		
 		//每上传一组，在里面新建一个文件夹，以当前上传的时间的时间戳为文件名，新建file关联当前文件夹路径
-		File currentFile  = new File(currentDirPath);
+		File currentDirFile  = new File(currentDirPath);
 		//创建文件夹
-		currentFile.mkdirs();
+		currentDirFile.mkdirs();
 		
-		//上传
+		//创建完成文件夹后
+		//正式上传
 		for(int i=0;i<files.length;i++){
-			AbstractFileUpload afu = getInstance(className,files[i],currentDirPath);
-			cs.submit(afu);//开启线程池，并行上传图片
+			AbstractFileUpload afu = getInstance(className, files[i], currentDirPath);
+			cs.submit(afu);//开启线程池，并行上传
 		}
 		//等待多线程完成
 		ThreadsWaitUtils.mutilThreadWait(files.length, cs);
+		LOGGER.info("执行AbstractFileUpload的上传方法完毕");
 		return currentDirPath;
 	}
 	

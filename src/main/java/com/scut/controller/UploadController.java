@@ -8,6 +8,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.xmlbeans.XmlException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +29,6 @@ import com.scut.service.similarity.SimilarityService;
 /**
  * 上传文件
  * @author jaybill
- *
  */
 @Controller
 @RequestMapping("uploadController")
@@ -35,10 +36,56 @@ public class UploadController {
 	
 	@Autowired
 	private FileUploadContext uploadContext;
-	@Autowired
-	private ServiceFacade serviceFacade;
+//	@Autowired
+//	private ServiceFacade serviceFacade;
+	//解析文档进度
+	public static final String resolveProgress="resolveProgress";
+	//分词进度
+	public static final String pplProgress = "pplProgress";
+	//相似度计算进度
+	public static final String simiProgress = "simiProgress";
+	private static final Logger LOGGER = LoggerFactory.getLogger(UploadController.class);
 	/**
-	 * 上传文件
+	 * 创建session，用于保存进度
+	 * @param request
+	 */
+	@ResponseBody
+	@RequestMapping("setsession.do")
+	public int setSession(HttpServletRequest request){
+		request.getSession().setAttribute(resolveProgress, 0.0);
+		request.getSession().setAttribute(pplProgress, 0.0);
+		request.getSession().setAttribute(simiProgress, 0.0);
+		return 1;
+	}
+	/**
+	 * 返回进度信息
+	 * reslv：解析文档进度
+	 * ppl：分词进度
+	 * simi：计算相似度的进度
+	 * @param request
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping("getsession.do")
+	public Double[] getSession(HttpServletRequest request){
+		Double reslv = (Double)request.getSession().getAttribute(resolveProgress);
+		Double ppl = (Double)request.getSession().getAttribute(pplProgress);
+		Double simi = (Double)request.getSession().getAttribute(simiProgress);
+		return new Double[]{reslv,ppl,simi};
+	}
+	/**
+	 * 上传文件。
+	 * 
+	 * 一、接受三种上传格式：
+	 * 1、上传多个doc、docx文档
+	 * 2、上传多个zip包，zip里面有一个doc或docx文档，可以包含文件夹；
+	 * 3、上传一个zip包，这个压缩包里面要么全是doc、docx文件，要么是和2一样的zip压缩包，不能既有zip又有doc、docx。
+	 * 
+	 * 二、多线程（FileUploadContext）批量上传文件。等待所有文件上传完成，获取文件所在的文件夹的路径。
+	 * 
+	 * 三、获取到的绝对路径，暂时存放session中，供予提取文字、分词、分析重复率的使用。
+	 * 
+	 * 四、上传文件采用工厂模式和策略模式。
 	 * @param file
 	 * @param request
 	 * @return
@@ -47,6 +94,7 @@ public class UploadController {
 	@RequestMapping(value="uploadFile.do",method=RequestMethod.POST)
 	public Result uploadFile(@RequestParam("file") MultipartFile [] files,
 			HttpServletRequest request){
+		setSession(request);//清空进度
 		if(files.length<=0||files[0].getOriginalFilename().length()<=0)
 			return null;
 		//绝对路径
@@ -59,6 +107,7 @@ public class UploadController {
 		//等待线程完成
 		//........
 		//将路径放到session
+		LOGGER.info("----等待各个上传线程完成----");
 		request.getSession().setAttribute("dirPath", dirPath);
 		request.getSession().removeAttribute("wordsArray");
 		if(dirPath==null||dirPath.length()==0)
@@ -81,6 +130,8 @@ public class UploadController {
 	@RequestMapping(value="analyseSimilarity.do")
 	public List<Similarity> analyseSimilarity(HttpServletRequest request,byte type) 
 			throws XmlException, OpenXML4JException, IOException{
+		//清空相似度进度信息，暂不设缓存
+		request.getSession().setAttribute(simiProgress, 0.0);
 		//获取该文件夹的绝对路径
 		String dirRealPath = (String)request.getSession().getAttribute("dirPath");
 		//获取该文件夹下面的所有文件
@@ -92,24 +143,27 @@ public class UploadController {
 		if(resList == null){
 			resList = new ArrayList<HashMap<String, ArrayList<String>>>();
 			//获取word内容、分词
+			LOGGER.info("--------开始获取内容并分词-------");
+			ServiceFacade serviceFacade = new ServiceFacade();
 			if(dirRealPath.contains("zips")){
 				//先获取word文档的内容
 				if(files[0].getName().endsWith(".zip")){
-					serviceFacade.multiThreadHandleZip(files,resList);
+					serviceFacade.multiThreadHandleZip(files,resList,request);
 				}else{
-					serviceFacade.multiThreadHandleWords(files,resList);
+					serviceFacade.multiThreadHandleWords(files,resList,request);
 				}
 			}else if(dirRealPath.contains("files")){
-				serviceFacade.multiThreadHandleWords(files,resList);				
+				serviceFacade.multiThreadHandleWords(files,resList,request);				
 			}
+			LOGGER.info("-------获取内容并分词结束--------");
 		}
 		request.getSession().setAttribute("wordsArray", resList);
-		System.out.println("-------开始分析相似度--------");
+		LOGGER.info("-------开始分析相似度--------");
 		//获取相似度实例
 		SimilarityService simiService = SimilarityFactory.getSimiralityType(type);
 		//多线程分析相似度
-		List<Similarity> res = simiService.analyseSimilarity(resList);
-		System.out.println("-------分析相似度结束-------");
+		List<Similarity> res = simiService.analyseSimilarity(resList,request);
+		LOGGER.info("-------分析相似度结束-------");
 		return res;
 	}
 }

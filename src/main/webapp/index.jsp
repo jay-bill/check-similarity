@@ -163,7 +163,7 @@
 				data:{type:val},
 				dataType:"json",
 				error:function(){
-					$("body").html("<h2>服务器正在维护！</h2>");
+					$("body").html("<h2>文件格式错误！请检测是否符合上传要求</h2>");
 				},
 				success:function(data){
 					simData = data;

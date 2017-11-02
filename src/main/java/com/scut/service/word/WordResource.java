@@ -3,6 +3,9 @@ package com.scut.service.word;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.poi.POIXMLDocument;
 import org.apache.poi.POIXMLTextExtractor;
@@ -11,6 +14,8 @@ import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.xmlbeans.XmlException;
+
+import com.scut.controller.UploadController;
 import com.scut.utils.NoMeaningWords;
 
 /**
@@ -20,8 +25,9 @@ import com.scut.utils.NoMeaningWords;
  */
 public class WordResource implements Resource {
 	private String path;
+	
 	public WordResource(){}
-	public WordResource(String path){
+	public WordResource(String path) {
 		this.path = path;
 	}
 	@Override

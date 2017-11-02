@@ -8,8 +8,11 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.stereotype.Service;
 
+import com.scut.controller.UploadController;
 import com.scut.pojo.Similarity;
 
 @Service
@@ -27,7 +30,8 @@ public class CommonWordSimilarityService extends SimilarityService{
 	 * @param list:每一个文档的学生名字和分词数组
 	 * @return
 	 */
-	public List<Similarity> analyseSimilarity(List<HashMap<String,ArrayList<String>>> list){
+	public List<Similarity> analyseSimilarity(List<HashMap<String,ArrayList<String>>> list,
+			HttpServletRequest request){
 		List<Similarity> resList = new ArrayList<Similarity>();
 		//多线程计算相似度
 		for(int i=0;i<list.size();i++){
@@ -37,6 +41,9 @@ public class CommonWordSimilarityService extends SimilarityService{
 		for(int i=0;i<list.size();i++){
 			try {
 				Similarity sm = cs.take().get();
+				//修改进度条
+				request.getSession().setAttribute(UploadController.simiProgress,
+						(Double)((Double)request.getSession().getAttribute(UploadController.simiProgress)+1.0/list.size()));
 				resList.add(sm);
 			} catch (InterruptedException e) {
 				e.printStackTrace();

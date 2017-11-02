@@ -27,7 +27,8 @@ public class DirNameUtils {
 	 * @return
 	 */
 	public static String createDirPath(String path){
-		path = path+File.separator+createDirName();
+		StringBuilder sb = new StringBuilder(path);
+		path = sb.append(File.separator).append(createDirName()).toString();
 		return path;
 	}
 	

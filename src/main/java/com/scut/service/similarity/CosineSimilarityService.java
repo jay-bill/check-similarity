@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 
+import javax.servlet.http.HttpServletRequest;
+
+import com.scut.controller.UploadController;
 import com.scut.pojo.Similarity;
 
 /**
@@ -24,7 +27,8 @@ public class CosineSimilarityService extends SimilarityService {
 		this.currentStu = currentStu;
 	}
 	@Override
-	public List<Similarity> analyseSimilarity(List<HashMap<String, ArrayList<String>>> list) {
+	public List<Similarity> analyseSimilarity(List<HashMap<String, ArrayList<String>>> list,
+			HttpServletRequest request) {
 		List<Similarity> resList = new ArrayList<Similarity>();
 		for(int i=0;i<list.size();i++){
 			HashMap<String,ArrayList<String>> curMap = list.get(i);
@@ -34,6 +38,9 @@ public class CosineSimilarityService extends SimilarityService {
 		for(int i=0;i<list.size();i++){
 			try {
 				Similarity sm = cs.take().get();
+				//修改进度条
+				request.getSession().setAttribute(UploadController.simiProgress,
+						(Double)((Double)request.getSession().getAttribute(UploadController.simiProgress)+1.0/list.size()));
 				resList.add(sm);
 			} catch (InterruptedException e) {
 				e.printStackTrace();

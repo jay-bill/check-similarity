@@ -2,13 +2,19 @@ package com.scut.utils;
 
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.scut.controller.UploadController;
 /**
  * 等待多线程完成的工具类
  * @author jaybill
  *
  */
 public class ThreadsWaitUtils {
-	
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadsWaitUtils.class);
+
 	/**
 	 * 等待多线程完成
 	 * @param length
@@ -16,7 +22,7 @@ public class ThreadsWaitUtils {
 	 * @return
 	 */
 	public static <T> T mutilThreadWait(int length,CompletionService<T> cs){
-		System.out.println("--线程等待中--");
+		LOGGER.info("--线程等待中--");
 		//等待线程完成
 		T t = null;
 		for(int i=0;i<length;i++){
@@ -28,7 +34,7 @@ public class ThreadsWaitUtils {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("--线程结束等待--");
+		LOGGER.info("--线程结束等待--");
 		return t;
 	}
 }

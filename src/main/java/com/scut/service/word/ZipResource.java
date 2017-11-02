@@ -9,6 +9,8 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.xmlbeans.XmlException;
 import org.springframework.stereotype.Service;
@@ -24,7 +26,6 @@ public class ZipResource implements Resource {
 
 	@Override
 	public String getText(String zipPath) throws IOException, XmlException, OpenXML4JException {
-		System.out.println("zip:"+Thread.currentThread().getName()+":"+zipPath);
 		File file = new File(zipPath);		
 		//解压zip文件，解压文件夹和原zip文件同名，在同一目录下。
 		String unzipPath = unZipFiles(file,file.getParent());

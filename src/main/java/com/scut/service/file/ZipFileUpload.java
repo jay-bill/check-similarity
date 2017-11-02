@@ -18,11 +18,13 @@ import com.scut.utils.DirNameUtils;
  *
  */
 public class ZipFileUpload extends AbstractFileUpload {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ZipsFileUpload.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ZipFileUpload.class);
 	@Override
 	public String upload(MultipartFile[] files, String path) {
+		LOGGER.info("执行上传一个Zip包的方法。");
 		if(files.length==1&&files[0].getOriginalFilename().endsWith(".zip")){
-			path = path+File.separator+"zips";
+			StringBuilder sb = new StringBuilder(path);
+			path = sb.append(File.separator).append("zips").toString();
 			File dirFile = new File(path);
 			if(!dirFile.exists()){
 				dirFile.mkdirs();
@@ -36,7 +38,7 @@ public class ZipFileUpload extends AbstractFileUpload {
 			
 			String res = this.uploadZip(files[0],currentDirPath);
 			if(res==null){
-				LOGGER.debug("上传Zip类型文件的时候，出现了异常。");
+				LOGGER.debug("上传Zip类型文件的时候，出现了异常，请检查上传的文件是否符合格式。");
 				return null;
 			}				
 			//解析
@@ -46,11 +48,13 @@ public class ZipFileUpload extends AbstractFileUpload {
 				zipDir = this.unZipFiles(f, f.getParent());
 			} catch (IOException e) {
 				e.printStackTrace();
+				LOGGER.error("解压单个Zip文件出现错误！");
 			}
 			//解压完成，删除zip包
 			f.delete();
 			return zipDir;//返回解压之后文件存放的目录
 		}
+		LOGGER.info("执行上传一个Zip包的方法完毕。");
 		return null;
 	}
 	
@@ -85,6 +89,7 @@ public class ZipFileUpload extends AbstractFileUpload {
 	 * @throws IOException
 	 */
 	public String unZipFiles(File zipFile, String descDir) throws IOException {          
+		LOGGER.info("执行解压zip包方法。");
         @SuppressWarnings("resource")
 		ZipFile zip = new ZipFile(zipFile,Charset.forName("GBK"));//解决中文文件夹乱码  
         //zip文件名（不包括路径信息）
@@ -122,6 +127,7 @@ public class ZipFileUpload extends AbstractFileUpload {
             	continue;
             }                             
         }  
+        LOGGER.info("执行解压zip包方法完毕。");
         return newPath;
     }
 }
