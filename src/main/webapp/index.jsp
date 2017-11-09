@@ -164,6 +164,7 @@
 				dataType:"json",
 				error:function(){
 					$("body").html("<h2>文件格式错误！请检测是否符合上传要求</h2>");
+					clearInterval(counter);
 				},
 				success:function(data){
 					simData = data;
